@@ -153,25 +153,49 @@ def infoAboutUser():
 		except:
 			print "User does not add his/her personal website on github!"
 
-                # Get followers
+        # Get followers
 		for followersCount in soup.findAll('span', attrs = {'class': "counter"}):
 		    parent = followersCount.parent
 		    if parent.name == 'a' and 'followers' in parent['href']:
-			count = int(re.search(r'\d+', str(followersCount.text)).group())
+		    	count = followersCount.text.replace(" ",'').replace("\n", "")
+			#count = int(re.search(r'\d+', str(followersCount.text)).group())
 			print "Followers: ",count
+			count = int(re.search(r'\d+', str(followersCount.text)).group())
+			if (count > 0):
+				follow(url,'followers')
 
 		for followingCount in soup.findAll('span', attrs = {'class': "counter"}):
 		    parent = followingCount.parent
 		    if parent.name == 'a' and 'following' in parent['href']:
-			count = int(re.search(r'\d+', str(followingCount.text)).group())
+		    	count = followersCount.text.replace(" ", '').replace("\n", "")
 			print "Following: ", count
+			count = int(re.search(r'\d+', str(followingCount.text)).group())
+			if (count > 0):
+				follow(url,'following')
 
 		#Give user bio
+		userdesc(soup)
+
+	def follow(url,str):
+		url_new = url + '?tab=' + str
+
 		try:
-			userBio = soup.find('div', attrs = {'class': 'user-profile-bio'}).text
-			print "Bio: ",userBio
-		except:
-			print "User does not add his/her Bio on github!"
+			soup = BeautifulSoup(urllib2.urlopen(url_new).read(), 'html.parser')
+		except Exception:
+			print 'Connection Error!'
+			exit()
+
+		user_names = soup.find_all('span', {'class': 'f4 link-gray-dark'})
+
+		for uname in user_names:
+			ustring = '-> ' + uname.string
+			try:
+				print ustring
+			except:
+				continue
+		print ''
+
+
 
 	def contributions(soup):
 		"""
@@ -221,16 +245,16 @@ def infoAboutUser():
 	def userdesc(soup):
 		try:
 			desc= soup.find('div',{'class':'user-profile-bio'}).text
-			print "\nUsers Bio:",desc
+			print "User's Bio:",desc
 		except Exception:
-			print "\nUsers Bio: This User doesn\'t have a bio"
+			print "User's Bio: This User doesn\'t have a bio"
 
 	print "\nUsers Info\n"
 	profileInfo(soup)
+	# followers(url)
 	contributions(soup)
 	print "\nUsers Popular Repositories\n"
 	popularRepos(soup)
-	userdesc(soup)
 
 if __name__ == "__main__":
 	print "Welcome to the Python Interface of GitHub!"
